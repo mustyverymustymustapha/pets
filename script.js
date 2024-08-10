@@ -1,4 +1,5 @@
 const pet = document.getElementById('pet');
+const petName = document.getElementById('petName');
 const state = document.getElementById('state');
 const feedBtn = document.getElementById('feedBtn');
 const danceBtn = document.getElementById('danceBtn');
@@ -6,6 +7,7 @@ const playBtn = document.getElementById('playBtn');
 const sleepBtn = document.getElementById('sleepBtn');
 const fixBtn = document.getElementById('fixBtn');
 const timerElement = document.getElementById('timer');
+const highScoresElement = document.getElementById('highScores');
 
 const animals = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐙', '🐵'];
 const states = ['Happy', 'Sad', 'Hungry', 'Excited', 'Sleepy', 'Playful', 'Sick', 'Lonely'];
@@ -18,8 +20,20 @@ let fatalStateTime = 0;
 let timerInterval;
 let fatalStateInterval;
 let stateChangeTimeout;
+let highScores = [];
 
-function updateState(newState) {
+async function getRandomName() {
+    try {
+        const response = await fetch('https://api.namefake.com/');
+        const data = await response.json();
+        return data.name.split(' ')[0];
+    } catch (error) {
+        console.error('Error fetching name:', error);
+        return 'Pet';
+    }
+}
+
+async function updateState(newState) {
     if (!isFixed) {
         currentState = newState;
         state.textContent = currentState;
@@ -40,8 +54,10 @@ function updateState(newState) {
     }
 }
 
-function morphPet() {
+async function morphPet() {
     pet.textContent = animals[Math.floor(Math.random() * animals.length)];
+    const newName = await getRandomName();
+    petName.textContent = newName;
 }
 
 function randomStateChange() {
@@ -94,16 +110,24 @@ function checkFatalState() {
     }
 }
 
-function resetPet() {
+async function resetPet() {
     clearInterval(timerInterval);
     clearInterval(fatalStateInterval);
     clearTimeout(stateChangeTimeout);
+    updateHighScores(aliveTime);
     aliveTime = 0;
     fatalStateTime = 0;
     updateState('Happy');
-    morphPet();
+    await morphPet();
     timerInterval = setInterval(updateTimer, 1000);
     stateChangeTimeout = setTimeout(randomStateChange, 5000);
+}
+
+function updateHighScores(score) {
+    highScores.push(score);
+    highScores.sort((a, b) => b - a);
+    highScores = highScores.slice(0, 5);
+    highScoresElement.textContent = 'Highest times: ' + highScores.join(', ') + ' seconds';
 }
 
 feedBtn.addEventListener('click', feed);

@@ -7,7 +7,6 @@ body {
   margin: 0;
   background-color: #f0f0f0;
 }
-
 .pet-container {
   text-align: center;
   background-color: white;
@@ -15,36 +14,30 @@ body {
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
-
 .pet {
   font-size: 100px;
   margin: 20px 0;
 }
-
 .button-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
 }
-
 button {
   font-size: 16px;
   margin: 5px;
   padding: 10px 20px;
   cursor: pointer;
 }
-
 #state {
   font-weight: bold;
   margin-top: 10px;
   font-size: 24px;
 }
-
-#timer {
+#timer, #highScores, #petName {
   margin-top: 20px;
   font-size: 18px;
 }
-
 @keyframes dance {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
