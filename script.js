@@ -97,3 +97,24 @@ function checkFatalState() {
 function resetPet() {
     clearInterval(timerInterval);
     clearInterval(fatalStateInterval);
+    clearTimeout(stateChangeTimeout);
+    aliveTime = 0;
+    fatalStateTime = 0;
+    updateState('Happy');
+    morphPet();
+    timerInterval = setInterval(updateTimer, 1000);
+    stateChangeTimeout = setTimeout(randomStateChange, 5000);
+}
+
+feedBtn.addEventListener('click', feed);
+danceBtn.addEventListener('click', dance);
+playBtn.addEventListener('click', play);
+sleepBtn.addEventListener('click', sleep);
+fixBtn.addEventListener('click', fix);
+
+setInterval(morphPet, 60000);
+
+timerInterval = setInterval(updateTimer, 1000);
+stateChangeTimeout = setTimeout(randomStateChange, 5000);
+
+morphPet();
