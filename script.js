@@ -54,3 +54,46 @@ function randomStateChange() {
 function feed() {
     updateState('Happy');
 }
+
+function dance() {
+    updateState('Excited');
+    pet.style.animation = 'dance 0.5s ease-in-out';
+    setTimeout(() => {
+        pet.style.animation = '';
+    }, 500);
+}
+
+function play() {
+    updateState('Playful');
+}
+
+function sleep() {
+    updateState('Sleepy');
+}
+
+function fix() {
+    isFixed = !isFixed;
+    fixBtn.textContent = isFixed ? 'Unfix' : 'Fix';
+    if (isFixed) {
+        clearTimeout(stateChangeTimeout);
+    } else {
+        stateChangeTimeout = setTimeout(randomStateChange, 5000);
+    }
+}
+
+function updateTimer() {
+    aliveTime++;
+    timerElement.textContent = `Alive for: ${aliveTime} seconds`;
+}
+
+function checkFatalState() {
+    fatalStateTime++;
+    if (fatalStateTime >= 15) {
+        alert('Your pet has died!');
+        resetPet();
+    }
+}
+
+function resetPet() {
+    clearInterval(timerInterval);
+    clearInterval(fatalStateInterval);
