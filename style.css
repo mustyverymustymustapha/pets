@@ -42,3 +42,23 @@ button {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
 }
+.needs-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 20px;
+}
+.need {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  width: 100%;
+}
+.need label {
+  width: 80px;
+  text-align: right;
+  margin-right: 10px;
+}
+.need progress {
+  flex-grow: 1;
+}

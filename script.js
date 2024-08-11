@@ -9,6 +9,10 @@ const fixBtn = document.getElementById('fixBtn');
 const timerElement = document.getElementById('timer');
 const highScoresElement = document.getElementById('highScores');
 
+const hungerBar = document.getElementById('hunger');
+const energyBar = document.getElementById('energy');
+const happinessBar = document.getElementById('happiness');
+
 const animals = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐙', '🐵'];
 const states = ['Happy', 'Sad', 'Hungry', 'Excited', 'Sleepy', 'Playful', 'Sick', 'Lonely'];
 const fatalStates = ['Sad', 'Sleepy', 'Sick', 'Lonely'];
@@ -20,7 +24,12 @@ let fatalStateTime = 0;
 let timerInterval;
 let fatalStateInterval;
 let stateChangeTimeout;
+let needsInterval;
 let highScores = [];
+
+let hunger = 100;
+let energy = 100;
+let happiness = 100;
 
 async function getRandomName() {
     try {
@@ -69,6 +78,9 @@ function randomStateChange() {
 
 function feed() {
     updateState('Happy');
+    hunger = Math.min(hunger + 30, 100);
+    happiness = Math.min(happiness + 10, 100);
+    updateNeedsBars();
 }
 
 function dance() {
@@ -77,14 +89,24 @@ function dance() {
     setTimeout(() => {
         pet.style.animation = '';
     }, 500);
+    happiness = Math.min(happiness + 20, 100);
+    energy = Math.max(energy - 10, 0);
+    updateNeedsBars();
 }
 
 function play() {
     updateState('Playful');
+    happiness = Math.min(happiness + 30, 100);
+    energy = Math.max(energy - 20, 0);
+    hunger = Math.max(hunger - 10, 0);
+    updateNeedsBars();
 }
 
 function sleep() {
     updateState('Sleepy');
+    energy = Math.min(energy + 50, 100);
+    hunger = Math.max(hunger - 20, 0);
+    updateNeedsBars();
 }
 
 function fix() {
@@ -92,8 +114,10 @@ function fix() {
     fixBtn.textContent = isFixed ? 'Unfix' : 'Fix';
     if (isFixed) {
         clearTimeout(stateChangeTimeout);
+        clearInterval(needsInterval);
     } else {
         stateChangeTimeout = setTimeout(randomStateChange, 5000);
+        needsInterval = setInterval(updateNeeds, 5000);
     }
 }
 
@@ -104,7 +128,7 @@ function updateTimer() {
 
 function checkFatalState() {
     fatalStateTime++;
-    if (fatalStateTime >= 15) {
+    if (fatalStateTime >= 15 || hunger <= 0 || energy <= 0 || happiness <= 0) {
         alert('Your pet has died!');
         resetPet();
     }
@@ -114,13 +138,19 @@ async function resetPet() {
     clearInterval(timerInterval);
     clearInterval(fatalStateInterval);
     clearTimeout(stateChangeTimeout);
+    clearInterval(needsInterval);
     updateHighScores(aliveTime);
     aliveTime = 0;
     fatalStateTime = 0;
+    hunger = 100;
+    energy = 100;
+    happiness = 100;
+    updateNeedsBars();
     updateState('Happy');
     await morphPet();
     timerInterval = setInterval(updateTimer, 1000);
     stateChangeTimeout = setTimeout(randomStateChange, 5000);
+    needsInterval = setInterval(updateNeeds, 5000);
 }
 
 function updateHighScores(score) {
@@ -128,6 +158,32 @@ function updateHighScores(score) {
     highScores.sort((a, b) => b - a);
     highScores = highScores.slice(0, 5);
     highScoresElement.textContent = 'Highest times: ' + highScores.join(', ') + ' seconds';
+}
+
+function updateNeeds() {
+    hunger = Math.max(hunger - 2, 0);
+    energy = Math.max(energy - 1, 0);
+    happiness = Math.max(happiness - 1, 0);
+    updateNeedsBars();
+    updateStateBasedOnNeeds();
+}
+
+function updateNeedsBars() {
+    hungerBar.value = hunger;
+    energyBar.value = energy;
+    happinessBar.value = happiness;
+}
+
+function updateStateBasedOnNeeds() {
+    if (hunger < 30) {
+        updateState('Hungry');
+    } else if (energy < 30) {
+        updateState('Sleepy');
+    } else if (happiness < 30) {
+        updateState('Sad');
+    } else if (hunger > 80 && energy > 80 && happiness > 80) {
+        updateState('Happy');
+    }
 }
 
 feedBtn.addEventListener('click', feed);
@@ -140,5 +196,7 @@ setInterval(morphPet, 60000);
 
 timerInterval = setInterval(updateTimer, 1000);
 stateChangeTimeout = setTimeout(randomStateChange, 5000);
+needsInterval = setInterval(updateNeeds, 5000);
 
 morphPet();
+updateNeedsBars();
