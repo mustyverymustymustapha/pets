@@ -6,6 +6,7 @@ const danceBtn = document.getElementById('danceBtn');
 const playBtn = document.getElementById('playBtn');
 const sleepBtn = document.getElementById('sleepBtn');
 const fixBtn = document.getElementById('fixBtn');
+const pauseBtn = document.getElementById('pauseBtn');
 const timerElement = document.getElementById('timer');
 const highScoresElement = document.getElementById('highScores');
 
@@ -19,12 +20,14 @@ const fatalStates = ['Sad', 'Sleepy', 'Sick', 'Lonely'];
 
 let currentState = 'Happy';
 let isFixed = false;
+let isPaused = false;
 let aliveTime = 0;
 let fatalStateTime = 0;
 let timerInterval;
 let fatalStateInterval;
 let stateChangeTimeout;
 let needsInterval;
+let morphInterval;
 let highScores = [];
 
 let hunger = 100;
@@ -43,7 +46,7 @@ async function getRandomName() {
 }
 
 async function updateState(newState) {
-    if (!isFixed) {
+    if (!isFixed && !isPaused) {
         currentState = newState;
         state.textContent = currentState;
 
@@ -64,73 +67,89 @@ async function updateState(newState) {
 }
 
 async function morphPet() {
-    pet.textContent = animals[Math.floor(Math.random() * animals.length)];
-    const newName = await getRandomName();
-    petName.textContent = newName;
+    if (!isPaused) {
+        pet.textContent = animals[Math.floor(Math.random() * animals.length)];
+        const newName = await getRandomName();
+        petName.textContent = newName;
+    }
 }
 
 function randomStateChange() {
-    if (!isFixed) {
+    if (!isFixed && !isPaused) {
         const newState = states[Math.floor(Math.random() * states.length)];
         updateState(newState);
     }
 }
 
 function feed() {
-    updateState('Happy');
-    hunger = Math.min(hunger + 30, 100);
-    happiness = Math.min(happiness + 10, 100);
-    updateNeedsBars();
+    if (!isPaused) {
+        updateState('Happy');
+        hunger = Math.min(hunger + 30, 100);
+        happiness = Math.min(happiness + 10, 100);
+        updateNeedsBars();
+    }
 }
 
 function dance() {
-    updateState('Excited');
-    pet.style.animation = 'dance 0.5s ease-in-out';
-    setTimeout(() => {
-        pet.style.animation = '';
-    }, 500);
-    happiness = Math.min(happiness + 20, 100);
-    energy = Math.max(energy - 10, 0);
-    updateNeedsBars();
+    if (!isPaused) {
+        updateState('Excited');
+        pet.style.animation = 'dance 0.5s ease-in-out';
+        setTimeout(() => {
+            pet.style.animation = '';
+        }, 500);
+        happiness = Math.min(happiness + 20, 100);
+        energy = Math.max(energy - 10, 0);
+        updateNeedsBars();
+    }
 }
 
 function play() {
-    updateState('Playful');
-    happiness = Math.min(happiness + 30, 100);
-    energy = Math.max(energy - 20, 0);
-    hunger = Math.max(hunger - 10, 0);
-    updateNeedsBars();
+    if (!isPaused) {
+        updateState('Playful');
+        happiness = Math.min(happiness + 30, 100);
+        energy = Math.max(energy - 20, 0);
+        hunger = Math.max(hunger - 10, 0);
+        updateNeedsBars();
+    }
 }
 
 function sleep() {
-    updateState('Sleepy');
-    energy = Math.min(energy + 50, 100);
-    hunger = Math.max(hunger - 20, 0);
-    updateNeedsBars();
+    if (!isPaused) {
+        updateState('Sleepy');
+        energy = Math.min(energy + 50, 100);
+        hunger = Math.max(hunger - 20, 0);
+        updateNeedsBars();
+    }
 }
 
 function fix() {
-    isFixed = !isFixed;
-    fixBtn.textContent = isFixed ? 'Unfix' : 'Fix';
-    if (isFixed) {
-        clearTimeout(stateChangeTimeout);
-        clearInterval(needsInterval);
-    } else {
-        stateChangeTimeout = setTimeout(randomStateChange, 5000);
-        needsInterval = setInterval(updateNeeds, 5000);
+    if (!isPaused) {
+        isFixed = !isFixed;
+        fixBtn.textContent = isFixed ? 'Unfix' : 'Fix';
+        if (isFixed) {
+            clearTimeout(stateChangeTimeout);
+            clearInterval(needsInterval);
+        } else {
+            stateChangeTimeout = setTimeout(randomStateChange, 5000);
+            needsInterval = setInterval(updateNeeds, 5000);
+        }
     }
 }
 
 function updateTimer() {
-    aliveTime++;
-    timerElement.textContent = `Alive for: ${aliveTime} seconds`;
+    if (!isPaused) {
+        aliveTime++;
+        timerElement.textContent = `Alive for: ${aliveTime} seconds`;
+    }
 }
 
 function checkFatalState() {
-    fatalStateTime++;
-    if (fatalStateTime >= 15 || hunger <= 0 || energy <= 0 || happiness <= 0) {
-        alert('Your pet has died!');
-        resetPet();
+    if (!isPaused) {
+        fatalStateTime++;
+        if (fatalStateTime >= 15 || hunger <= 0 || energy <= 0 || happiness <= 0) {
+            alert('Your pet has died!');
+            resetPet();
+        }
     }
 }
 
@@ -139,6 +158,7 @@ async function resetPet() {
     clearInterval(fatalStateInterval);
     clearTimeout(stateChangeTimeout);
     clearInterval(needsInterval);
+    clearInterval(morphInterval);
     updateHighScores(aliveTime);
     aliveTime = 0;
     fatalStateTime = 0;
@@ -148,9 +168,7 @@ async function resetPet() {
     updateNeedsBars();
     updateState('Happy');
     await morphPet();
-    timerInterval = setInterval(updateTimer, 1000);
-    stateChangeTimeout = setTimeout(randomStateChange, 5000);
-    needsInterval = setInterval(updateNeeds, 5000);
+    startIntervals();
 }
 
 function updateHighScores(score) {
@@ -161,11 +179,13 @@ function updateHighScores(score) {
 }
 
 function updateNeeds() {
-    hunger = Math.max(hunger - 2, 0);
-    energy = Math.max(energy - 1, 0);
-    happiness = Math.max(happiness - 1, 0);
-    updateNeedsBars();
-    updateStateBasedOnNeeds();
+    if (!isPaused) {
+        hunger = Math.max(hunger - 2, 0);
+        energy = Math.max(energy - 1, 0);
+        happiness = Math.max(happiness - 1, 0);
+        updateNeedsBars();
+        updateStateBasedOnNeeds();
+    }
 }
 
 function updateNeedsBars() {
@@ -186,17 +206,38 @@ function updateStateBasedOnNeeds() {
     }
 }
 
+function togglePause() {
+    isPaused = !isPaused;
+    pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+
+    const petContainer = document.querySelector('.pet-container');
+    petContainer.classList.toggle('paused', isPaused);
+
+    if (isPaused) {
+        clearInterval(timerInterval);
+        clearInterval(fatalStateInterval);
+        clearTimeout(stateChangeTimeout);
+        clearInterval(needsInterval);
+        clearInterval(morphInterval);
+    } else {
+        startIntervals();
+    }
+}
+
+function startIntervals() {
+    timerInterval = setInterval(updateTimer, 1000);
+    stateChangeTimeout = setTimeout(randomStateChange, 5000);
+    needsInterval = setInterval(updateNeeds, 5000);
+    morphInterval = setInterval(morphPet, 60000);
+}
+
 feedBtn.addEventListener('click', feed);
 danceBtn.addEventListener('click', dance);
 playBtn.addEventListener('click', play);
 sleepBtn.addEventListener('click', sleep);
 fixBtn.addEventListener('click', fix);
+pauseBtn.addEventListener('click', togglePause);
 
-setInterval(morphPet, 60000);
-
-timerInterval = setInterval(updateTimer, 1000);
-stateChangeTimeout = setTimeout(randomStateChange, 5000);
-needsInterval = setInterval(updateNeeds, 5000);
-
+startIntervals();
 morphPet();
 updateNeedsBars();

@@ -62,3 +62,7 @@ button {
 .need progress {
   flex-grow: 1;
 }
+.paused {
+  opacity: 0.5;
+  pointer-events: none;
+}
