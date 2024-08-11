@@ -1,3 +1,50 @@
+const moods = ['😊 Happy', '😢 Sad', '😠 Angry', '😴 Sleepy', '🤪 Silly'];
+let currentMood = moods[0];
+let moodTimer;
+
+function updateMood() {
+    if (!isPaused && !isFixed) {
+        const randomMood = moods[Math.floor(Math.random() * moods.length)];
+        currentMood = randomMood;
+        updatePetAppearance();
+    }
+}
+
+function updatePetAppearance() {
+    const [emoji, moodText] = currentMood.split(' ');
+    pet.textContent = emoji;
+    state.textContent = moodText;
+
+    switch (moodText) {
+        case 'Happy':
+            pet.style.transform = 'scale(1.1)';
+            break;
+        case 'Sad':
+            pet.style.transform = 'scale(0.9)';
+            break;
+        case 'Angry':
+            pet.style.transform = 'rotate(-10deg)';
+            break;
+        case 'Sleepy':
+            pet.style.transform = 'rotate(10deg)';
+            break;
+        case 'Silly':
+            pet.style.animation = 'dance 0.5s infinite';
+            break;
+        default:
+            pet.style.transform = 'none';
+            pet.style.animation = 'none';
+    }
+}
+
+function startMoodSystem() {
+    updateMood();
+    moodTimer = setInterval(updateMood, 10000); 
+}
+
+startMoodSystem();
+
+
 const pet = document.getElementById('pet');
 const petName = document.getElementById('petName');
 const state = document.getElementById('state');
@@ -159,6 +206,7 @@ async function resetPet() {
     clearTimeout(stateChangeTimeout);
     clearInterval(needsInterval);
     clearInterval(morphInterval);
+    clearInterval(moodTimer);
     updateHighScores(aliveTime);
     aliveTime = 0;
     fatalStateTime = 0;
@@ -169,6 +217,7 @@ async function resetPet() {
     updateState('Happy');
     await morphPet();
     startIntervals();
+    startMoodSystem();
 }
 
 function updateHighScores(score) {
